@@ -441,10 +441,10 @@ need_x64() {
   if [ "$UNAME" != "x86_64" ]; then err "You must run this command on a 64-bit server."; fi
 }
 
-wait_443() {
-  echo "Waiting for port 443 to clear "
+wait_444() {
+  echo "Waiting for port 444 to clear "
   # netstat fields 4 and 6 are Local Address and State
-  while netstat -ant | awk '{print $4, $6}' | grep TIME_WAIT | grep -q ":443"; do sleep 1; echo -n '.'; done
+  while netstat -ant | awk '{print $4, $6}' | grep TIME_WAIT | grep -q ":444"; do sleep 1; echo -n '.'; done
   echo
 }
 
@@ -486,14 +486,14 @@ get_IP() {
 
     need_pkg netcat-openbsd
 
-    wait_443
+    wait_444
 
-    nc -l -p 443 > /dev/null 2>&1 &
+    nc -l -p 444 > /dev/null 2>&1 &
     nc_PID=$!
     sleep 1
     
      # Check if we can reach the server through it's external IP address
-     if nc -zvw3 "$external_ip" 443  > /dev/null 2>&1; then
+     if nc -zvw3 "$external_ip" 444  > /dev/null 2>&1; then
        INTERNAL_IP=$IP
        IP=$external_ip
        echo 
@@ -887,8 +887,8 @@ server {
 
 }
 server {
-  listen 443 ssl http2;
-  listen [::]:443 ssl http2;
+  listen 444 ssl http2;
+  listen [::]:444 ssl http2;
   server_name $HOST;
 
     ssl_certificate /etc/letsencrypt/live/$HOST/fullchain.pem;
@@ -1002,13 +1002,13 @@ configure_coturn() {
 
     <bean id="turn0" class="org.bigbluebutton.web.services.turn.TurnServer">
         <constructor-arg index="0" value="$COTURN_SECRET"/>
-        <constructor-arg index="1" value="turns:$COTURN_HOST:443?transport=tcp"/>
+        <constructor-arg index="1" value="turns:$COTURN_HOST:444?transport=tcp"/>
         <constructor-arg index="2" value="86400"/>
     </bean>
     
     <bean id="turn1" class="org.bigbluebutton.web.services.turn.TurnServer">
         <constructor-arg index="0" value="$COTURN_SECRET"/>
-        <constructor-arg index="1" value="turn:$COTURN_HOST:443?transport=tcp"/>
+        <constructor-arg index="1" value="turn:$COTURN_HOST:444?transport=tcp"/>
         <constructor-arg index="2" value="86400"/>
     </bean>
 
@@ -1050,7 +1050,7 @@ install_coturn() {
 
   cat <<HERE > /etc/turnserver.conf
 listening-port=3478
-tls-listening-port=443
+tls-listening-port=444
 
 listening-ip=$IP
 relay-ip=$IP
@@ -1131,7 +1131,7 @@ HERE
 
   systemctl daemon-reload
   systemctl stop coturn
-  wait_443
+  wait_444
   systemctl start coturn
 }
 
